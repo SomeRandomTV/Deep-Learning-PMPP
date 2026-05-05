@@ -140,8 +140,6 @@ def main():
 
     input_tokens = pd.read_csv(input_tokens_path)
     X_enc, y_enc = token_encoder(input_tokens)
-    
-
 
     # shuffle and split tokens 
     idx = np.random.default_rng(42).permutation(len(X_enc))
@@ -158,7 +156,7 @@ def main():
     print(f"Training set size: {len(X_train)}")
     print(f"Testing set size: {len(X_test)}")
     print("----- Token Encoding -----")
-    print(json.dumps(TOKEN_LABELS, indent=2))
+    print(json.dumps(TOKEN_ENCODING, indent=2))
 
 
     for n_nodes in [3,9]:
@@ -173,8 +171,8 @@ def main():
         pred_2 = predict(model, "close", "ED")
 
         print(f"=========== Results ({n_nodes}) ============")
-        print(f"Training Accuracy {train_accuracy}")
-        print(f"Testing accuracy {test_accuracy}")
+        print(f"Training Accuracy: {train_accuracy * 100:.2f}%")
+        print(f"Testing Accuracy:  {test_accuracy * 100:.2f}%")
         print("---------- Predictions ----------")
         print(f" 'open' 'close' -> '{pred_1}'")
         print(f" 'close' 'ED' -> '{pred_2}'")
