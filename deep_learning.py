@@ -32,6 +32,15 @@ TOKEN_LABELS = {
     "ED": 5
 }
 
+LABEL_TO_TOK = {
+
+    0: "ST",
+    1: "open",
+    2: "read",
+    3: "write",
+    4: "close",
+    5: "ED" 
+}
 
 if torch.cuda.is_available():
     device = torch.device("cuda")
@@ -57,7 +66,7 @@ def token_encoder(raw_tokens: pd.DataFrame):
 
 
 
-class TokenPred(nn.module):
+class TokenPred(nn.Module):
 
     def __init__(self, hidden_nodes: int):
 
@@ -66,7 +75,7 @@ class TokenPred(nn.module):
         self.relu = nn.ReLU()
         self.fc2 = nn.Linear(hidden_nodes, 6)
 
-    def forward(self, x: torch.tensor):
+    def forward(self, x: torch.Tensor):
 
         x = self.fc1(x)
         x = self.relu(x)
@@ -74,7 +83,7 @@ class TokenPred(nn.module):
 
         return x
 
-def train(model: TokenPred, X_tr: torch.tensor, y_tr: torch.tensor, learning_rate: float, hidden_nodes: int):
+def train(model: TokenPred, X_tr: torch.Tensor, y_tr: torch.Tensor, learning_rate: float, hidden_nodes: int):
 
     criterion = nn.CrossEntropyLoss()
     optimizer =  optim.Adam(model.parameters(), learning_rate)
@@ -83,12 +92,12 @@ def train(model: TokenPred, X_tr: torch.tensor, y_tr: torch.tensor, learning_rat
     for epoch in tqdm(range(EPOCHS), desc=f"Hidden Nodes: {hidden_nodes}"):
         optimizer.zero_grad()
         outputs = model(X_tr)
-        loss = criterion(y_tr, outputs)
+        loss = criterion(outputs, y_tr)
         loss.backward()
         optimizer.step()
 
 
-def evaluate(model: TokenPred, X_ev: torch.tensor, y_ev: torch.tensor) -> float:
+def evaluate(model: TokenPred, X_ev: torch.Tensor, y_ev: torch.Tensor) -> float:
     model.eval()
 
     with torch.no_grad():
@@ -107,9 +116,9 @@ def predict(model: TokenPred, t1: str, t2: str):
         x = torch.tensor([[TOKEN_ENCODING[t1], TOKEN_ENCODING[t2]]], dtype=torch.float32).to(device)
 
         output = model(x)
-        pred_label = torch.argmax(output, dim=1)
+        pred = torch.argmax(output, dim=1)
     
-    return TOKEN_LABELS[pred_label]
+    return LABEL_TO_TOK[pred.item()]
             
 
 
@@ -118,7 +127,7 @@ def predict(model: TokenPred, t1: str, t2: str):
 
 def main():
 
-    if (sys.argv[1] is None):
+    if (len(sys.argv) != 2):
         print("ERROR: Invalid arguments given")
         exit(-123)
 
